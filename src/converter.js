@@ -1,4 +1,5 @@
 import React from 'react'
+import './converter.css'
 
 class Converter extends React.Component {
 
@@ -41,32 +42,42 @@ class Converter extends React.Component {
     amountChanged = (value) => {
         
         this.setState({amount : value});
+        this.getRate(this.state.fromCurrency,this.state.toCurrency,value);
+    }
 
-        if(this.state.fromCurrency === "" || this.state.toCurrency === "")
+    getRate(from , to, amount) {
+        if(from === "" || to === "")
             {
                 alert("Please select From and To Currencies")
                 return;
             }
 
         const url = "https://localhost:44301/api/ExchangeRates";
-        let parameterizedUrl = url + "?from=" + this.state.fromCurrency + "&to=" + this.state.toCurrency; 
+        let parameterizedUrl = url + "?from=" + from + "&to=" + to; 
 
         fetch(parameterizedUrl).then(res => res.json())
-        .then(json => this.setState({convertedValue : json * this.state.amount}))
+        .then(json => this.setState({convertedValue : json * amount}))
         .catch(err => console.log(err));
     }
 
     setFromCurrency = (currency) => {
         this.setState({fromCurrency : currency});
+
+        if(this.state.amount)
+            this.getRate(currency, this.state.toCurrency, this.state.amount);
     }
 
     setToCurrency = (currency) => {
         this.setState({toCurrency : currency});
+
+        if(this.state.amount)
+            this.getRate(this.state.fromCurrency, currency, this.state.amount);
     }
 
     render() {
         return (
             <div>
+                <h2>Currency Converter</h2>
                 <div>
                     <input type="text"  onChange={e => this.amountChanged(e.target.value)}/>
                     <select onChange={e => this.setFromCurrency(e.target.value)}>
@@ -75,7 +86,7 @@ class Converter extends React.Component {
                     </select>
                 </div>
                 <div>
-                    <input type="text" value= {this.state.convertedValue}/>
+                    <input readOnly type="text" value= {this.state.convertedValue}/>
                     <select onChange={e => this.setToCurrency(e.target.value)}>
                         <option selected disabled hidden Style='display: none' value=''>-- select an option --</option>
                         {this.state.Currencies.map(curr => <option key = {curr[0]} value = {curr[0]}>{curr[1]}</option>)}
